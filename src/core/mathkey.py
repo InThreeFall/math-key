@@ -2,93 +2,108 @@ from pynput import keyboard
 import json
 import config.STATIC as STATIC
 from core.ime import IME
+import core.loader as loader
 
+def getValueByStateStr():
+    return MathKeyController.state.split(':')
+
+def getLatterBykey(key): 
+    inKey = key
+    for i in loader.load_keyList():
+        if key == keyboard.KeyCode.from_char(i):
+            inKey = i
+            break
+    return inKey
+def isLatter(key):
+    print(key)
+    if key in loader.load_keyList():
+        print('True')
+        return True
+    print('False')
+    return False
+def mapKey2Str(key):
+    if key == keyboard.Key.space:
+        inKey = 'space'
+    #如果输入的是回车
+    elif key == keyboard.Key.enter:
+        inKey = 'enter'
+    #如果是左箭头和右箭头和上箭头和下箭头
+    elif key == keyboard.Key.left:
+        inKey = 'left'
+    elif key == keyboard.Key.right:
+        inKey = 'right'
+    elif key == keyboard.Key.up:
+        inKey = 'up'
+    elif key == keyboard.Key.down:
+        inKey = 'down'
+    #如果是ese
+    elif key == keyboard.Key.esc:
+        inKey = 'esc'
+    #如果是退格键
+    elif key == keyboard.Key.backspace:
+        inKey = 'backspace'
+    else:
+        inKey = key
+    return inKey
 def on_press(key):
     try:
-        inKey = ''
-        dirABC = ['a','b','c','d','e','f','g','h','i','j',
-                  'k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'
-                  'A','B','C','D','E','F','G','H','I','J',
-                  'K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-        if MathKeyController.state == 'off':
+        fun,state = getValueByStateStr()
+        if state == 'off':
             return
-        #如果输入的是字母,则获取对应的字母
-        for i in dirABC:
-            if key == keyboard.KeyCode.from_char(i):
-                inKey = i
-                break
-        #如果输入的是空格
-        if key == keyboard.Key.space:
-            inKey = 'space'
-        #如果输入的是回车
-        elif key == keyboard.Key.enter:
-            inKey = 'enter'
-        #如果是左箭头和右箭头和上箭头和下箭头
-        elif key == keyboard.Key.left:
-            inKey = 'left'
-        elif key == keyboard.Key.right:
-            inKey = 'right'
-        elif key == keyboard.Key.up:
-            inKey = 'up'
-        elif key == keyboard.Key.down:
-            inKey = 'down'
-        #如果是ese
-        elif key == keyboard.Key.esc:
-            inKey = 'esc'
-        #如果是退格键
-        elif key == keyboard.Key.backspace:
-            inKey = 'backspace'
-        if MathKeyController.state == 'pinyin':
-            pinyinStateSwitch(inKey,keyboard.Controller())
-        else:
-            getAndType(inKey,keyboard.Controller())
-    except AttributeError:
-        pass
+        inKey = getLatterBykey(key)#如果输入的是字母,则获取对应的字母
+        inKey = mapKey2Str(inKey)
+        if fun=='输入法' and MathKeyController.state in MathKeyController.corpusNamelist:
+            typeInput = state
+            pinyinStateSwitch(inKey,typeInput)
+        elif fun=='映射' and MathKeyController.state in MathKeyController.mappinglist:
+            typeInput = state
+            getAndType(inKey,typeInput)
+    except AttributeError as e:
+        print(e)
 
-def getAndType(key,control):
-    control = keyboard.Controller()
-    #从map.json获取对应的按键
+def getAndType(key,typeInput):
+    #检测是否是字母
+    if not isLatter(key):
+        return
+    control = keyboard.Controller()#从map.json获取对应的按键映射
     try:
-        with open(STATIC.MAP_PATH, 'r',encoding='utf-8') as f:
-            map = json.load(f)
-            #从map对象中获取MathKeyController.state对应的映射对象
-            map = map[MathKeyController.state]
-            key_str = map[key]
-            #按下删除键
-            control.press(keyboard.Key.backspace)
-            control.type(key_str)
+        key_str = loader.getValueByKey(typeInput,key)         
+        print(key_str)       
+        control.press(keyboard.Key.backspace)
+        control.type(key_str)
     except Exception as e:
-        pass
+        print(e)
+
+def reset():
+    MathKeyController.candidate = []
+    MathKeyController.selected = 0
+    MathKeyController.inputKey = ''
+    MathKeyController.showCandidate = []
+    MathKeyController.showCandidatePage = 0
 
 deleteNum = 0
-def pinyinStateSwitch(key,control):
-    print("输入：",MathKeyController.inputKey)
+def deleteN(num):
+    control = keyboard.Controller()
+    for i in range(num):
+        control.press(keyboard.Key.backspace)
+        control.release(keyboard.Key.backspace)
+def pinyinStateSwitch(key,typeInput):
+    control = keyboard.Controller()
     #如果输入的是回车
     global deleteNum
-    print("deleteNum:",deleteNum)
     if key == 'enter':
         deleteNum = len(MathKeyController.inputKey)+1
         #一次性打印deleteNum个退格键
-        for i in range(deleteNum):
-            control.press(keyboard.Key.backspace)
-            control.release(keyboard.Key.backspace)
-        control.type(MathKeyController.candidate[MathKeyController.selected])
-        MathKeyController.candidate = []
-        MathKeyController.selected = 0
-        MathKeyController.inputKey = ''
-        MathKeyController.showCandidate = []
-        MathKeyController.showCandidatePage = 0
+        deleteN(deleteNum)
+        if len(MathKeyController.candidate) > 0:
+            control.type(MathKeyController.candidate[MathKeyController.selected])
+        reset()
         return
     #如果输入的是空格
     if key == 'space':
-        MathKeyController.candidate = []
-        MathKeyController.selected = 0
-        MathKeyController.inputKey = ''
-        MathKeyController.showCandidate = []
-        MathKeyController.showCandidatePage = 0
+        reset()
         #输入一个退格键
-        control.press(keyboard.Key.backspace)
-        control.release(keyboard.Key.backspace)
+        deleteN(1)
         return
     #如果输入的是左箭头
     if key == 'left':
@@ -123,11 +138,7 @@ def pinyinStateSwitch(key,control):
         return
     #如果输入的是esc键
     if key == 'esc':
-        MathKeyController.candidate = []
-        MathKeyController.selected = 0
-        MathKeyController.inputKey = ''
-        MathKeyController.showCandidate = []
-        MathKeyController.showCandidatePage = 0
+        reset()
         return
     #如果输入的是退格键
     if key == 'backspace':
@@ -138,25 +149,23 @@ def pinyinStateSwitch(key,control):
             MathKeyController.inputKey = MathKeyController.inputKey[:-1]
         #获取候选词
         if len(MathKeyController.inputKey) > 0:
-            scores = IME().getScoresByX(MathKeyController.inputKey,"希腊")
+            scores = IME().getScoresByX(MathKeyController.inputKey,typeInput)
             MathKeyController.candidate = [i[1] for i in scores]
             #取前5个候选词
             MathKeyController.showCandidate = MathKeyController.candidate[:5]
             MathKeyController.showCandidatePage = 0
             MathKeyController.selected = 0
         else:
-            MathKeyController.showCandidatePage = 0
-            MathKeyController.showCandidate = []
-            MathKeyController.candidate = []
-            MathKeyController.selected = 0
+            reset()
         return
-    if not checkIsLetter(key):
+    if not isLatter(key):
         return
     #如果输入的是字母
+    print(key)
     MathKeyController.inputKey += key
     #获取候选词
     if len(MathKeyController.inputKey) > 0:
-        scores = IME().getScoresByX(MathKeyController.inputKey,"希腊")
+        scores = IME().getScoresByX(MathKeyController.inputKey,typeInput)
         MathKeyController.candidate = [i[1] for i in scores]
         #取前5个候选词
         MathKeyController.showCandidate = MathKeyController.candidate[:5]
@@ -166,22 +175,8 @@ def pinyinStateSwitch(key,control):
         MathKeyController.candidate = []
         MathKeyController.selected = 0
 
-
-def checkIsLetter(key):
-    dirABC = ['a','b','c','d','e','f','g','h','i','j',
-              'k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'
-              'A','B','C','D','E','F','G','H','I','J',
-              'K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-    for i in dirABC:
-        if key == i:
-            return True
-    return False
-
-
 def on_release(key):
-    if key == keyboard.Key.esc:
-        # 释放了esc 键，停止监听
-        return False
+    pass
      
 def on_change(cmd = None):
     if cmd != None:
@@ -212,18 +207,18 @@ class MathKeyController:
         MathKeyController.globalListener.stop()
 
     #从文件中读取快捷键
-    file = open(STATIC.CONFIG_PATH, 'r',encoding='utf-8')
-    js = json.load(file)
-    changeStateHotKey = js['changeState']
+    changeStateHotKey = loader.load_config('changeState')
 
-    file = open(STATIC.MAP_PATH, 'r',encoding='utf-8')
-    js = json.load(file)
-    #获取js所有的key
-    stateList = list(js.keys())
-    stateList.append('off')
-    stateList.append('pinyin')
+    #创建映射列表
+    mappinglist = loader.load_mappingNameList()
+    mappinglist = list(map(lambda x:"映射:"+x,mappinglist))
+    configlist = loader.load_configNameList()
+    configlist = list(map(lambda x:"配置:"+x,configlist))
+    corpusNamelist = loader.load_corpusNameList()
+    corpusNamelist = list(map(lambda x:"输入法:"+x,corpusNamelist))
+    stateList = mappinglist + corpusNamelist
+    stateList.append('状态:off')
     state = stateList[0]
-    
     #候选词
     candidate = []
     #选中的候选词

@@ -14,42 +14,36 @@ class Server:
         self.finishfun()
 
 class ServerManager:
-    def __init__(self):
-        self.servers = []
+    servers = []
 
-    def add_server(self, server:Server):
-        self.servers.append(server)
+    def add_server(server:Server):
+        ServerManager.servers.append(server)
     
-    def add_servers(self, servers):
+    def add_servers(servers):
         for server in servers:
-            self.servers.append(server)
+            ServerManager.servers.append(server)
 
-    def remove_server(self, serverName):
-        for server in self.servers:
+    def remove_server(serverName):
+        for server in ServerManager.servers:
             if server.servername == serverName:
-                self.servers.remove(server)
+                ServerManager.servers.remove(server)
                 break
 
-    def get_servers(self):
-        return self.servers
+    def get_servers():
+        return ServerManager.servers
     
-    def onSystemStart(self):
+    def onSystemStart():
         try:
-            for server in self.servers:
+            for server in ServerManager.servers:
                 server.start()
         except Exception as e:
             print(e)
-            #弹出系统提示 错误
-            pywin.showMessageBox('错误',e,pywin.MB_ICONERROR)
-
-
-            
         
-    def onSystemFinish(self):
+    def onSystemFinish():
         try:
-            for server in self.servers:
+            for server in ServerManager.servers:
                 server.finish()
+
         except Exception as e:
-            #弹出系统提示 错误
-            pywin.showMessageBox('错误',e,pywin.MB_ICONERROR)
+            print(e)
 

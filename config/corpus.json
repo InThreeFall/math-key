@@ -24,5 +24,17 @@
         "χ": ["chi", "xi", "ch"],
         "ψ": ["psi", "ps", "psi"],
         "ω": ["omega", "omeg", "om"]
+    },
+    "测试":{
+        "a": ["a", "aa", "aaa"],
+        "b": ["b", "bb", "bbb"],
+        "c": ["c", "cc", "ccc"],
+        "d": ["d", "dd", "ddd"],
+        "e": ["e", "ee", "eee"],
+        "f": ["f", "ff", "fff"],
+        "g": ["g", "gg", "ggg"],
+        "h": ["h", "hh", "hhh"],
+        "i": ["i", "ii", "iii"],
+        "j": ["j", "jj", "jjj"]
     }
 }
