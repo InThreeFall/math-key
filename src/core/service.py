@@ -38,6 +38,7 @@ class ServerManager:
             for server in self.servers:
                 server.start()
         except Exception as e:
+            print(e)
             #弹出系统提示 错误
             pywin.showMessageBox('错误',e,pywin.MB_ICONERROR)
 
