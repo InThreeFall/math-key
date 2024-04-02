@@ -40,6 +40,12 @@ def getValueByKey(mappingName,key):
     js = json.load(file)
     mapping = js[mappingName]
     return mapping[key]
+def getLatexStrByValue(value):
+    file = open(STATIC.CONFIG_PATH, 'r',encoding='utf-8')
+    js = json.load(file)
+    mapping = js['Latex']
+    print("value"+mapping[value])
+    return mapping[value]
 
 """
 加载配置名称列表

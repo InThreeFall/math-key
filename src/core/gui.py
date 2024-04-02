@@ -7,8 +7,8 @@ import threading
 import subprocess
 import config.STATIC as STATIC
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout,QPushButton
+from PyQt5.QtGui import QCursor,QColor
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout,QPushButton,QHBoxLayout,QWidget
 from PyQt5.QtCore import QTimer
 import sys
 import core.loader as loader
@@ -166,21 +166,70 @@ class InputWin(QMainWindow):
 
     def initUI(self):
         # 设置窗口属性
-        self.setFixedSize(1000, 100)
+        self.setFixedSize(500, 60)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus)
+        #创建中心部件
+        self.main_widget = QWidget()
+        self.setCentralWidget(self.main_widget)
+        #设置外边距为0
+        self.main_widget.setContentsMargins(0, 0, 0, 0)
+        #创建按钮部件
+        self.button_layout = QHBoxLayout()
+        self.main_widget.setLayout(self.button_layout)
+        #设背景颜色
+        self.button_layout.setContentsMargins(0, 0, 0, 0)
+        self.button_layout.setAlignment(Qt.AlignCenter)
+        self.button_layout.setSpacing(0)
+        #创建按钮
+        self.button_list = []
+        self.tipLabel_list = []
+        self.item_layout_list = []
+        self.item_widget_list = []
+        for i in range(5):
+            #添加数字提示label
+            #创建子布局
+            item_widget = QWidget()
+            #设置布局内为中央对齐
+            item_layout = QHBoxLayout()
+            #设置为中央对齐
+            item_widget.setLayout(item_layout)
+            label = QLabel(str(i+1), self)
+            label.setFixedWidth(20)
+            label.setAlignment(Qt.AlignCenter)
+            font = label.font()
+            font.setBold(True)
+            font.setPointSize(16)
+            label.setFont(font)
+            self.tipLabel_list.append(label)
+            item_layout.addWidget(label)
+            #添加按钮
+            btn = QPushButton("", self)
+            btn.setFixedHeight(60)
+            ##设置外边距为0
+            btn.setContentsMargins(0, 0, 0, 0)
+            #设按钮高度与窗口高度一致
+            #设置字体大小
+            font = btn.font()
+            font.setPointSize(16)
+            font.setBold(True)
+            btn.setFont(font)
+            self.button_list.append(btn)
+            item_layout.addWidget(btn)
+            #设置item_widget 背景颜色为白色
+            self.item_widget_list.append(item_widget)
+            self.button_layout.addWidget(item_widget)
+            self.item_layout_list.append(item_layout)
+        
+        #设置按钮均分窗口的宽,高度与窗口高度一致
+        for i in range(5):
+            self.button_layout.setStretch(i, 1)
 
-        #输入提示
-        layout = QVBoxLayout()
-        text_label = QLabel('候选区', self)
-        text_label.setGeometry(10, 10, 980, 80)
-        text_label.setAlignment(Qt.AlignCenter)
-        text_label.setStyleSheet("QLabel { color : black; }")  # 根据背景颜色调整字体颜色
-        layout.addWidget(text_label)
 
-        # 设置定时器，每隔一段时间更新状态
+        #设置定时器，每隔一段时间更新状态
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.__updateState)
         self.timer.start(100)
+
 
     #随鼠标移动
     def __followMouse(self, pos):
@@ -193,13 +242,24 @@ class InputWin(QMainWindow):
         if state == '输入法':
             if len(MathKeyController.inputKey) > 0:
                 self.show()
-                text = str(MathKeyController.showCandidate)
-                if len(MathKeyController.candidate) != 0:
-                    selectedCand = MathKeyController.candidate[MathKeyController.selected]
-                else:
-                    selectedCand = "无"
-                text = "候选词："+text +"\n"+"第"+str(MathKeyController.showCandidatePage)+"页" + "\n" + "已选词："+selectedCand
-                self.findChild(QLabel).setText(text)
+                #修改候选区为五个按钮
+                for i in range(5):
+                    btn = self.button_list[i]
+                    #显示当前页的候选词
+                    if i < len(MathKeyController.showCandidate):
+                        btn.setText(MathKeyController.showCandidate[i])
+                        #如果是选中的词，背景颜色变化
+                        if MathKeyController.candidate[MathKeyController.selected] == MathKeyController.showCandidate[i]:
+                            btn.setStyleSheet("background-color:#a6d8ff;color: #353535;border:none;padding-bottom:27px;")
+                            self.item_widget_list[i].setStyleSheet("background-color:#a6d8ff;color: #636363;border:none;margin-left:5px")
+                            self.tipLabel_list[i].setStyleSheet("background-color:#a6d8ff;color: #636363;border:none;")
+                        else:
+                            btn.setStyleSheet("background-color:#f3f3f3;color: #353535;border:none;padding-bottom:27px;")
+                            self.item_widget_list[i].setStyleSheet("background-color:#f3f3f3;color: #636363;border:none;margin-left:5px")
+                            self.tipLabel_list[i].setStyleSheet("background-color:#f5f5f5;color: #636363;border:none;")
+                    else:
+                        btn.setText("")
+
                 self.__followMouse(QCursor.pos())
             else:
                 self.hide()

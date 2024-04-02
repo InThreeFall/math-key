@@ -36,5 +36,37 @@
         "h": ["h", "hh", "hhh"],
         "i": ["i", "ii", "iii"],
         "j": ["j", "jj", "jjj"]
+    },
+    "Latex":{
+        "π": ["pi", "p", "pai"],
+        "ξ": ["xi", "kexi", "ks", "kxi"],
+        "α": ["alfa", "aerfa", "alpha"],
+        "β": ["beta", "bita"],
+        "γ": ["gamma", "gama"],
+        "δ": ["delta", "derta"],
+        "ε": ["epsilon", "eps", "epsi","yibuxi"],
+        "ζ": ["zeta", "zta", "zet"],
+        "η": ["eta", "hta", "et"],
+        "θ": ["theta", "thta", "thet", "seita"],
+        "ι": ["iota", "iota", "iot"],
+        "κ": ["kappa", "kapa", "kap"],
+        "λ": ["lambda", "lamda", "lamb"],
+        "μ": ["mu", "m", "muu"],
+        "ν": ["nu", "n", "nuu"],
+        "ο": ["omicron", "omikron", "omic"],
+        "ρ": ["rho", "ro", "rh"],
+        "σ": ["sigma", "sig", "sgma"],
+        "τ": ["tau", "ta", "taw"],
+        "υ": ["upsilon", "ups", "upsi"],
+        "φ": ["phi", "fi", "ph"],
+        "χ": ["chi", "xi", "ch"],
+        "ψ": ["psi", "ps", "psi"],
+        "ω": ["omega", "omeg", "om"],
+        "{": ["{", "kuohao"],
+        "}": ["}", "kuohao"],
+        "(": ["(", "kuohao"],
+        ")": [")", "kuohao"],
+        "/": ["/", "xiegang", "fenhao"]
     }
+
 }

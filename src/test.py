@@ -1,67 +1,59 @@
 import sys
-from PyQt5.QtCore import Qt, QPoint, QEvent, pyqtSignal
-from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QFont
 
-# 桌面底部的状态提示窗口
-class StatusBarWin(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-        print('StatusBarWin')
-
-    def initUI(self):
-        screen_geometry = QApplication.desktop().screenGeometry()
-        # 宽度可以根据需要设置，这里举例使用100px的宽度
-        status_width = 100
-        # 高度可以根据需要设置，这里举例使用30px的高度
-        status_height = 30
-        
-        # 靠右对齐，离底部一定高度(例如离底部10px)
-        self.setGeometry(screen_geometry.width() - status_width - 10, screen_geometry.height() - status_height - 10, status_width, status_height)
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.Tool)
-
-        # 设置窗口透明
-        self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setStyleSheet("background:transparent;")
-
-        # 添加一些内容到窗体
-        text_label = QLabel('状态提示', self)
-        text_label.setAlignment(Qt.AlignCenter)
-        text_label.setStyleSheet("QLabel { color : white; }")  # 根据背景颜色调整字体颜色
-
-        self.show()
-
-# 跟随鼠标移动的输入法窗口
-class InputWin(QMainWindow):
+class MyApp(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
 
     def initUI(self):
-        # 设置窗口的大小
-        self.setFixedSize(200, 50)
+        self.setGeometry(0, 0, 400, 50)
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus)
+        
+        self.mainLayout = QVBoxLayout(self)
+        self.button_layout = QHBoxLayout()
 
-        # 添加一些内容到窗体
-        text_label = QLabel('输入法窗口', self)
+        # 设置布局的间距为0
+        self.mainLayout.setSpacing(0)
+        self.button_layout.setSpacing(0)
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)
+        self.button_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.button_list = []
+        self.tipLabel_list = []
+        for i in range(5):
+            label = QLabel(str(i), self)
+            label.setFixedSize(8, 50)  # 减少标签大小以适应窗口
+            label.setAlignment(Qt.AlignCenter)
+            label.setFont(QFont('Arial', 10))  # 减小字体大小
+            self.tipLabel_list.append(label)
+            self.button_layout.addWidget(label)
+            
+            btn = QPushButton("", self)
+            btn.setFixedSize(74, 50)  # 固定按钮大小为74x50
+            btn.setFont(QFont('Arial', 10))  # 减小字体大小
+            btn.setStyleSheet('background-color: white; color: blue; padding: 0px; margin: 0px;')
+            self.button_list.append(btn)
+            self.button_layout.addWidget(btn)
+        
+        self.mainLayout.addLayout(self.button_layout)
+        self.setLayout(self.mainLayout)
+       
+        self.setStyleSheet("background-color: rgba(255,255,255, 80%);")
+        
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.__updateState)
+        self.timer.start(100)
 
-        text_label.setAlignment(Qt.AlignCenter)
+    def __updateState(self):
+        # 这里应包含更新状态的逻辑
+        pass
 
-
-    def followMouse(self, pos):
-        # 移动窗口到鼠标位置
-        self.move(pos.x(), pos.y() + 20)  # 位置稍微往下偏移，避免阻碍视线
-        self.show()
-
-
-# 运行程序
-def main():
-    app = QApplication(sys.argv)
-    status_bar = StatusBarWin()
-    input_win = InputWin()
-
-    sys.exit(app.exec_())
-
+# 应用程序主函数
 if __name__ == '__main__':
-    main()
+    app = QApplication(sys.argv)
+    ex = MyApp()
+    ex.show()
+    sys.exit(app.exec_())

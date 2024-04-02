@@ -1,6 +1,4 @@
 from pynput import keyboard
-import json
-import config.STATIC as STATIC
 from core.ime import IME
 import core.loader as loader
 
@@ -17,9 +15,7 @@ def getLatterBykey(key):
 def isLatter(key):
     print(key)
     if key in loader.load_keyList():
-        print('True')
         return True
-    print('False')
     return False
 def mapKey2Str(key):
     if key == keyboard.Key.space:
@@ -47,6 +43,7 @@ def mapKey2Str(key):
     return inKey
 def on_press(key):
     try:
+        print(MathKeyController.inputKey)
         fun,state = getValueByStateStr()
         if state == 'off':
             return
@@ -67,8 +64,7 @@ def getAndType(key,typeInput):
         return
     control = keyboard.Controller()#从map.json获取对应的按键映射
     try:
-        key_str = loader.getValueByKey(typeInput,key)         
-        print(key_str)       
+        key_str = loader.getValueByKey(typeInput,key)           
         control.press(keyboard.Key.backspace)
         control.type(key_str)
     except Exception as e:
@@ -82,6 +78,7 @@ def reset():
     MathKeyController.showCandidatePage = 0
 
 deleteNum = 0
+writeNum = 0
 def deleteN(num):
     control = keyboard.Controller()
     for i in range(num):
@@ -90,31 +87,45 @@ def deleteN(num):
 def pinyinStateSwitch(key,typeInput):
     control = keyboard.Controller()
     #如果输入的是回车
-    global deleteNum
+    global deleteNum,writeNum
     if key == 'enter':
         deleteNum = len(MathKeyController.inputKey)+1
         #一次性打印deleteNum个退格键
         deleteN(deleteNum)
         if len(MathKeyController.candidate) > 0:
+            print(typeInput)
+            if typeInput == 'Latex':
+                #在config中获取candidate对应的latex
+                latexStr = loader.getLatexStrByValue(MathKeyController.candidate[MathKeyController.selected])
+                if latexStr == None:
+                    writeNum = len("暂无对应的latex")
+                    control.type("暂无对应的latex")
+                else:
+                    writeNum = len(latexStr)-1
+                    control.type(latexStr)
+                reset()
+                return
             control.type(MathKeyController.candidate[MathKeyController.selected])
         reset()
         return
     #如果输入的是空格
     if key == 'space':
+        if len(MathKeyController.inputKey)==0:
+            return
         reset()
         #输入一个退格键
         deleteN(1)
         return
-    #如果输入的是左箭头
-    if key == 'left':
+    #如果输入的是下箭头
+    if key == 'up':
         if MathKeyController.selected > 0:
             MathKeyController.selected -= 1
             if MathKeyController.selected < MathKeyController.showCandidatePage*5:
                 MathKeyController.showCandidatePage -= 1
                 MathKeyController.showCandidate = MathKeyController.candidate[MathKeyController.showCandidatePage*5:MathKeyController.showCandidatePage*5+5]
         return
-    #如果输入的是右箭头
-    if key == 'right':
+    #如果输入的是上箭头
+    if key == 'down':
         if MathKeyController.selected < len(MathKeyController.candidate) - 1:
             MathKeyController.selected += 1
             if MathKeyController.selected > MathKeyController.showCandidatePage*5+4:
@@ -122,20 +133,20 @@ def pinyinStateSwitch(key,typeInput):
                 MathKeyController.showCandidate = MathKeyController.candidate[MathKeyController.showCandidatePage*5:MathKeyController.showCandidatePage*5+5]
         return
     #如果输入的是上箭头
-    if key == 'up':
-        if MathKeyController.showCandidatePage > 0:
-            MathKeyController.showCandidatePage -= 1
-        MathKeyController.showCandidate = MathKeyController.candidate[MathKeyController.showCandidatePage*5:MathKeyController.showCandidatePage*5+5]
-        #选中的候选词
-        MathKeyController.selected = MathKeyController.showCandidatePage*5
-        return
-    #如果输入的是下箭头
-    if key == 'down':
-        if MathKeyController.showCandidatePage < len(MathKeyController.candidate) // 5:
-            MathKeyController.showCandidatePage += 1
-        MathKeyController.showCandidate = MathKeyController.candidate[MathKeyController.showCandidatePage*5:MathKeyController.showCandidatePage*5+5]
-        MathKeyController.selected = MathKeyController.showCandidatePage*5
-        return
+    # if key == 'up':
+    #     if MathKeyController.showCandidatePage > 0:
+    #         MathKeyController.showCandidatePage -= 1
+    #     MathKeyController.showCandidate = MathKeyController.candidate[MathKeyController.showCandidatePage*5:MathKeyController.showCandidatePage*5+5]
+    #     #选中的候选词
+    #     MathKeyController.selected = MathKeyController.showCandidatePage*5
+    #     return
+    # #如果输入的是下箭头
+    # if key == 'down':
+    #     if MathKeyController.showCandidatePage < len(MathKeyController.candidate) // 5:
+    #         MathKeyController.showCandidatePage += 1
+    #     MathKeyController.showCandidate = MathKeyController.candidate[MathKeyController.showCandidatePage*5:MathKeyController.showCandidatePage*5+5]
+    #     MathKeyController.selected = MathKeyController.showCandidatePage*5
+    #     return
     #如果输入的是esc键
     if key == 'esc':
         reset()
@@ -160,8 +171,10 @@ def pinyinStateSwitch(key,typeInput):
         return
     if not isLatter(key):
         return
+    if writeNum > 0:
+        writeNum -= 1
+        return
     #如果输入的是字母
-    print(key)
     MathKeyController.inputKey += key
     #获取候选词
     if len(MathKeyController.inputKey) > 0:

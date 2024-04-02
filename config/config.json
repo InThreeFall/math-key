@@ -1,3 +1,14 @@
 {
-    "changeState": "<ctrl>+<alt>+z"
+    "changeState": "<ctrl>+<alt>+z",
+    "Latex":{
+        "α": "\\alpha",
+        "β": "\\beta",
+        "γ": "\\gamma",
+        "δ": "\\delta",
+        "{": "\\{",
+        "}": "\\}",
+        "(":"\\left(",
+        ")":"\\right)",
+        "/":"\\frac{}{}"
+    }
 }
